@@ -1,144 +1,57 @@
-# README: Fine-tuning a Foundation Model with Vertex AI and Kubeflow
+# 🚀 Stack Overflow ML Pipeline using BigQuery, Prompt Engineering & Kubeflow
 
-## Project Overview
-
-This project involves setting up a data exploration and model tuning pipeline using Google Cloud's Vertex AI, BigQuery, and Kubeflow Pipelines. The dataset includes Stack Overflow questions and answers, with a focus on Python-related queries for effective model tuning.
+This project demonstrates the end-to-end machine learning pipeline for analyzing Stack Overflow developer data using **Google BigQuery**, **Prompt Engineering**, and **Kubeflow** for orchestration and automation. It includes robust data preparation, automated pipeline execution, and prompt-based ML prediction modeling.
 
 ---
 
-## Authentication and Setup
+## ⚙️ Technologies Used
 
-First, load the project ID and credentials:
-
-```python
-from utils import authenticate
-credentials, PROJECT_ID = authenticate() 
-REGION = "us-central1"
-```
-
-Import the Vertex AI SDK, load the model, and initialize the environment:
-
-```python
-import vertexai
-from vertexai.language_models import TextGenerationModel
-vertexai.init(project=PROJECT_ID, location=REGION, credentials=credentials)
-```
+- **Google BigQuery** – To query and extract large-scale Stack Overflow datasets efficiently.
+- **Prompt Engineering** – Custom prompts crafted for model guidance during prediction.
+- **Kubeflow Pipelines** – For orchestrating and automating the ML workflow.
+- **Train-Test Split** – For model evaluation and validation.
+- **Load Balancer** – For scalable deployment and load distribution.
+- **Jupyter Notebooks** – For exploratory analysis and code modularity.
 
 ---
 
-## Model Deployment and Load Balancing
+## 🧠 Notebooks Overview
 
-Load the pre-trained `text-bison@001` model and retrieve deployed endpoints:
+### 📌 `data_preparation.ipynb`
+- Queries Stack Overflow public datasets using BigQuery.
+- Cleans and structures data suitable for ML training.
+- Handles missing values, text processing, and tag filtering.
 
-```python
-model = TextGenerationModel.from_pretrained("text-bison@001")
-list_tuned_models = model.list_tuned_model_names()
-```
+### ⚙️ `automation.ipynb`
+- Defines pipeline steps using **Kubeflow components**.
+- Triggers end-to-end automation of training and deployment.
+- Integrates with **Load Balancer** for scalable serving.
 
-Randomly select a model for load balancing:
-
-```python
-import random
-tuned_model_select = random.choice(list_tuned_models)
-deployed_model = TextGenerationModel.get_tuned_model(tuned_model_select)
-```
-
----
-
-## Prediction and Response Handling
-
-To generate predictions:
-
-```python
-PROMPT = "How can I load a CSV file using Pandas?"
-response = deployed_model.predict(PROMPT)
-print(response)
-```
-
-For readability:
-
-```python
-from pprint import pprint
-output = response._prediction_response[0][0]["content"]
-pprint(output)
-```
+### 🤖 `prediction_prompts.ipynb`
+- Accepts **user questions** and retrieves relevant Stack Overflow entries.
+- Crafts **structured prompts** to generate developer-style answers using LLMs.
+- Evaluates answer quality based on similarity to actual Stack Overflow responses.
 
 ---
 
-## Safety Check Implementation
+## 📈 Goals & Outcomes
 
-Check if the response is blocked or contains unwanted content:
-
-```python
-blocked = response._prediction_response[0][0]['safetyAttributes']['blocked']
-print(blocked)
-```
-
-Review safety scores to ensure content appropriateness:
-
-```python
-safety_attributes = response._prediction_response[0][0]['safetyAttributes']
-pprint(safety_attributes)
-```
+- Efficient handling of large-scale Q&A data from Stack Overflow.
+- Automated ML training + prediction pipeline.
+- Integration of modern MLOps tools and techniques.
+- Exploratory use of prompt engineering in traditional ML tasks.
 
 ---
 
-## Prompt Management and Templates
+## 🚧 Future Improvements
 
-Ensure prompts maintain consistency with training data. Use clear instructions:
-
-```python
-INSTRUCTION = "Please answer the following Stackoverflow question on Python. Answer it like you are a developer answering Stackoverflow questions."
-QUESTION = "How can I store my TensorFlow checkpoint on Google Cloud Storage?"
-PROMPT = f"{INSTRUCTION} {QUESTION}"
-final_response = deployed_model.predict(PROMPT)
-```
+- Add model explainability with SHAP/LIME.
+- Integrate frontend (e.g., Streamlit) for interactive user input.
+- Schedule periodic retraining using Cloud Functions or Airflow.
 
 ---
 
-## Kubeflow Pipelines
+## 📝 License
 
-Kubeflow pipelines streamline automation by creating modular components.
-
-#### Sample Pipeline
-
-```python
-@dsl.component
-def say_hello(name: str) -> str:
-    return f'Hello, {name}!'
-
-@dsl.component
-def how_are_you(hello_text: str) -> str:
-    return f"{hello_text}. How are you?"
-
-@dsl.pipeline
-def hello_pipeline(recipient: str) -> str:
-    hello_task = say_hello(name=recipient)
-    how_task = how_are_you(hello_text=hello_task.output)
-    return how_task.output
-
-compiler.Compiler().compile(hello_pipeline, 'pipeline.yaml')
-```
-
-Submit the pipeline:
-
-```python
-from google.cloud.aiplatform import PipelineJob
-pipeline_arguments = {"recipient": "World!"}
-job = PipelineJob(
-    template_path="pipeline.yaml",
-    display_name="deep_learning_ai_pipeline",
-    parameter_values=pipeline_arguments,
-    location="us-central1",
-    pipeline_root="./",
-)
-
-job.submit()
-print(job.state)
-```
-
----
-
-## Contact
-For questions or contributions, please reach out to Tapojita Kar at LinkedIn.
+This project is licensed under the MIT License. See `LICENSE` for more details.
 
